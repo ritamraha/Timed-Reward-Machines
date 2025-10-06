@@ -1,0 +1,6 @@
+x
+1           # initial state
+[(1,-1),(0,-1)]    # state costs
+(1, "g", "x<=10", "", ConstantRewardFunction(500), 0)
+(1, "!g&!h", "", "", ConstantRewardFunction(-10), 1)
+(1, "h", "", "", ConstantRewardFunction(-50), 0)

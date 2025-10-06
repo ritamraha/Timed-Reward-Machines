@@ -1,0 +1,22 @@
+y
+1
+[(1,-20),(2,-20),(3,-20)]
+(1, "a", "", "y", ConstantRewardFunction(200), 2) 
+(1, "b", "", "", ConstantRewardFunction(-10), 1)
+(1, "c", "", "", ConstantRewardFunction(-10), 1)
+(1, "h", "", "", ConstantRewardFunction(-200), 0)
+(1, "!a&!b&!c&!h", "y>1", "y", ConstantRewardFunction(-5), 1)
+(1, "!a&!b&!c&!h", "y<=1", "y", ConstantRewardFunction(-50), 1)
+(2, "a", "", "", ConstantRewardFunction(-10), 2)
+(2, "c", "", "", ConstantRewardFunction(-10), 2)
+(2, "b", "", "y", ConstantRewardFunction(600), 3)
+(2, "h", "", "", ConstantRewardFunction(-200), 0)
+(2, "!a&!b&!c&!h", "y>0", "y", ConstantRewardFunction(-5), 2)
+(2, "!a&!b&!c&!h", "y<=0", "y", ConstantRewardFunction(-50), 2)
+(3, "a", "", "", ConstantRewardFunction(-10), 3)
+(3, "b", "", "", ConstantRewardFunction(-20), 3)
+(3, "c", "", "", ConstantRewardFunction(800), 0)
+(3, "h", "", "", ConstantRewardFunction(-200), 0)
+(3, "!a&!b&!c&!h", "y>1", "y", ConstantRewardFunction(-5), 3)
+(3, "!a&!b&!c&!h", "y<=1", "y", ConstantRewardFunction(-50), 3)
+(0, "", "", "", ConstantRewardFunction(-200), 0)

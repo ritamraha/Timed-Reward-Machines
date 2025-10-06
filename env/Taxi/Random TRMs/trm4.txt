@@ -1,0 +1,10 @@
+x
+1           # initial state
+[(1,-15),(2,-30),(3,-15),(0,-1)]    # state costs
+(1, "in_taxi", "x>5 and x<=10", "", ConstantRewardFunction(400), 2)
+(1, "!in_taxi", "", "", ConstantRewardFunction(-40), 1)
+(2, "at_yellow&in_taxi", "", "", ConstantRewardFunction(600), 3)
+(2, "!at_yellow|!in_taxi", "", "", ConstantRewardFunction(-40), 2)
+(3, "at_dest", "x>5 and x<=10", "", ConstantRewardFunction(1000), 0)
+(3, "!at_dest", "", "", ConstantRewardFunction(-40), 3)
+(0, "", "", "", ConstantRewardFunction(-200), 0)

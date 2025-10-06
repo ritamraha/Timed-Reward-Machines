@@ -1,0 +1,14 @@
+x
+1
+[(1,-5),(2,-5),(3,-5),(4,-5),(0,-1)]
+(1, "in_taxi", "x>10", "x", ConstantRewardFunction(500), 2)
+(1, "!in_taxi", "", "", ConstantRewardFunction(-10), 1)
+(2, "at_green&in_taxi", "", "x", ConstantRewardFunction(800), 3)
+(2, "!at_green&in_taxi", "", "", ConstantRewardFunction(-10), 2)
+(3, "at_dest", "x<=15", "", ConstantRewardFunction(2000), 4)
+(4, "drop_off", "", "", ConstantRewardFunction(5000), 0)
+(4, "!drop_off", "", "", ConstantRewardFunction(-1000), 0)
+(3, "!at_dest&in_taxi", "", "", ConstantRewardFunction(-10), 3)
+(2, "!in_taxi", "", "", ConstantRewardFunction(-1000), 0)
+(3, "!at_dest&!in_taxi", "", "", ConstantRewardFunction(-1000), 0)
+(0, "", "", "", ConstantRewardFunction(-20), 0)
