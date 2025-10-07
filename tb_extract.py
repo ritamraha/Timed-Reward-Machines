@@ -248,7 +248,10 @@ for tag in sorted(all_tags):
         plt.ylim(time_range)
 
     tag_name = tag.replace("_", " ").title()
-    plt.ylabel(tag_name, fontsize=16)
+    if 'Taxi' in BASE_DIR.name:
+        plt.ylabel(tag_name, fontsize=16)
+    else:
+        plt.ylabel("", fontsize=16)
     # plt.title(tag_name)  # Removed title as requested
     # Remove legend from the main graph
     # plt.legend(loc='upper center', bbox_to_anchor=(0.5, 1.15), ncol=4, frameon=False)
@@ -327,5 +330,20 @@ for tag in sorted(all_tags):
     except Exception:
         print("Failed to convert SVG to PDF.")
     print(f"Saved {out_path}")
+
+# Convert all legend SVGs to PDF using Inkscape
+for legend_svg in out_dir.glob("*_legend.svg"):
+    pdf_path = legend_svg.with_suffix(".pdf")
+    try:
+        import subprocess
+        subprocess.run([
+            "inkscape", str(legend_svg),
+            "--export-type=pdf",
+            "--export-filename", str(pdf_path)
+        ], check=True)
+        print(f"Converted legend to PDF: {pdf_path}")
+    except Exception as e:
+        print(f"Failed to convert {legend_svg} to PDF: {e}")
+
 
 print(f"Done. Plots in: {out_dir.resolve()}")
