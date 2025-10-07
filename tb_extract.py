@@ -21,14 +21,14 @@ from collections import defaultdict
 
 # smoothing: set to 0 to disable, otherwise odd integer window size for rolling mean
 smoothing_window = 40
-reward_range = (-1000, 800)
-time_range = (0, 180)
+reward_range = (-1000, 2000)
+time_range = (0, 150)
 # ====================
 
 
 # ====== CONFIG ======
-in_dir = Path("logs/extracts_csv")   # << set this to your folder with CSVs
-out_dir = Path("logs/extracts_plot")
+in_dir = Path("Logs/extracts_csv")   # << set this to your folder with CSVs
+out_dir = Path("Logs/extracts_plot")
 out_dir.mkdir(exist_ok=True)
 # clear in_dir and out_dir and recreate
 if in_dir.exists():
@@ -174,8 +174,18 @@ grouped_files = defaultdict(list)
 for stem, df in data.items():
     grouped_files[display_name_from_stem(stem)].append(df)
 
+out_dir = Path("plot_" + BASE_DIR.name)
+out_dir.mkdir(exist_ok=True)
+# clear in_dir and out_dir and recreate
+if out_dir.exists():
+    shutil.rmtree(out_dir)
+out_dir.mkdir(exist_ok=True)
+
+
+
 for tag in sorted(all_tags):
-    plt.figure()
+    # Make plot width smaller (e.g., 5 inches wide, 4 inches tall)
+    plt.figure(figsize=(4.5, 5))
     any_curve = False
     for display_name, dfs in grouped_files.items():
         # collect all runs for this display_name and tag
@@ -231,16 +241,18 @@ for tag in sorted(all_tags):
     if not any_curve:
         plt.close()
         continue
-    plt.xlabel("Time steps")
+    plt.xlabel("Time steps", fontsize=16)
     if 'reward' in tag:
         plt.ylim(reward_range)
     if 'time' in tag:
         plt.ylim(time_range)
 
     tag_name = tag.replace("_", " ").title()
-    plt.ylabel(tag_name)
-    plt.title(tag_name)
-    plt.legend()
+    plt.ylabel(tag_name, fontsize=16)
+    # plt.title(tag_name)  # Removed title as requested
+    # Remove legend from the main graph
+    # plt.legend(loc='upper center', bbox_to_anchor=(0.5, 1.15), ncol=4, frameon=False)
+
     plt.grid(True)
 
     # format ticks to use 'K' for thousands (e.g., 2000 -> 2K)
@@ -278,7 +290,7 @@ for tag in sorted(all_tags):
             x_min = float(np.nanmin(x_all))
             x_max = float(np.nanmax(x_all))
             # Ensure at least 200000 is included as the upper x-limit
-            x_max = max(x_max, 200000)
+            x_max = max(x_max, 300000)
             # Add a smaller margin (e.g., 2%) beyond the upper x-limit
             margin = 0.02 * (x_max - x_min)
             if x_min == x_max:
@@ -293,6 +305,27 @@ for tag in sorted(all_tags):
     out_path = out_dir / f"{tag}.svg"
     plt.savefig(out_path, format="svg", bbox_inches="tight")
     plt.close()
+    
+    # --- Save legend separately as SVG ---
+    handles, labels = ax.get_legend_handles_labels()
+    if handles and labels:
+        fig_legend = plt.figure(figsize=(6, 1))
+        fig_legend.legend(handles, labels, loc='center', ncol=4, frameon=False)
+        fig_legend.tight_layout()
+        legend_path = out_dir / f"{tag}_legend.svg"
+        fig_legend.savefig(legend_path, format="svg", bbox_inches="tight")
+        plt.close(fig_legend)
+        print(f"Saved legend: {legend_path}")
+    
+    # svg to pdf using inkscape if available
+    try:
+        import subprocess
+        pdf_path = out_path.with_suffix(".pdf")
+        subprocess.run(["inkscape", str(out_path), "--export-type=pdf", "--export-filename", str(pdf_path)],
+                       check=True)
+        print(f"Saved {pdf_path}")
+    except Exception:
+        print("Failed to convert SVG to PDF.")
     print(f"Saved {out_path}")
 
 print(f"Done. Plots in: {out_dir.resolve()}")
