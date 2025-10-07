@@ -20,15 +20,15 @@ from collections import defaultdict
 
 
 # smoothing: set to 0 to disable, otherwise odd integer window size for rolling mean
-smoothing_window = 20
-reward_range = (-200, 2000)
-time_range = (0, 50)
+smoothing_window = 40
+reward_range = (-1000, 800)
+time_range = (0, 180)
 # ====================
 
 
 # ====== CONFIG ======
-in_dir = Path("extracts_csv")   # << set this to your folder with CSVs
-out_dir = Path("extracts_plot")
+in_dir = Path("logs/extracts_csv")   # << set this to your folder with CSVs
+out_dir = Path("logs/extracts_plot")
 out_dir.mkdir(exist_ok=True)
 # clear in_dir and out_dir and recreate
 if in_dir.exists():
@@ -263,7 +263,7 @@ for tag in sorted(all_tags):
     try:
         ax.relim()
         ax.autoscale_view()
-        ax.margins(y=0)
+        ax.margins(y=0.1, x=0.1)
     except Exception:
         pass
     # tighten x-limits to the actual plotted data (no extra horizontal padding)
@@ -277,13 +277,15 @@ for tag in sorted(all_tags):
             x_all = np.concatenate(x_arrays)
             x_min = float(np.nanmin(x_all))
             x_max = float(np.nanmax(x_all))
+            # Ensure at least 200000 is included as the upper x-limit
+            x_max = max(x_max, 200000)
+            # Add a smaller margin (e.g., 2%) beyond the upper x-limit
+            margin = 0.02 * (x_max - x_min)
             if x_min == x_max:
-                # single x-value: give a tiny fallback padding to avoid zero-width axis
-                pad = max(1.0, 0.01 * abs(x_min)) if x_min != 0 else 1.0
+                pad = max(0.1, 0.001 * abs(x_min)) if x_min != 0 else 0.1  # reduced pad
                 ax.set_xlim(x_min - pad, x_max + pad)
             else:
-                ax.set_xlim(x_min, x_max)
-            ax.margins(x=0)
+                ax.set_xlim(x_min, x_max + margin)
     except Exception:
         pass
 
