@@ -1,0 +1,16 @@
+x,y
+1
+[(1,-20),(2,-20),(3,-20)]
+(1, "a", "x<=5", "x,y", ConstantRewardFunction(1000), 2) 
+(1, "b", "", "x,y", ConstantRewardFunction(800), 3) 
+(1, "h", "", "", ConstantRewardFunction(-800), 0)
+(1, "!a&!b&!h", "y>1", "y", ConstantRewardFunction(-10), 1)
+(2, "a", "", "", ConstantRewardFunction(-10), 2) 
+(2, "b", "", "", ConstantRewardFunction(1000), 0) 
+(2, "h", "", "", ConstantRewardFunction(-800), 0)
+(2, "!a&!b&!h", "", "", ConstantRewardFunction(-10), 2)
+(3, "a", "", "", ConstantRewardFunction(800), 0) 
+(3, "b", "", "", ConstantRewardFunction(-10), 3) 
+(3, "h", "", "", ConstantRewardFunction(-800), 0)
+(3, "!a&!b&!h", "y>1", "y", ConstantRewardFunction(-10), 3)
+(0, "", "", "", ConstantRewardFunction(-800), 0)
