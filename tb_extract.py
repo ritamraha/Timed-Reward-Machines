@@ -86,15 +86,15 @@ for run_dir in run_dirs:
     # Name CSV after the subfolder (relative to BASE_DIR)
     rel = run_dir.relative_to(BASE_DIR)
     out_og_name = sanitize_path(rel)
-    if 'delaycont' in out_og_name:
+    if 'cont' in out_og_name:
         out_name = 'Corner Abstraction'
-    elif 'delaydisc' in out_og_name and 'discretization_1' in out_og_name:
+    elif 'disc' in out_og_name and 'discretization_1' in out_og_name:
         out_name = 'Digital Clock'
-    elif 'delaydisc' in out_og_name and 'discretization_0.2' in out_og_name:
+    elif 'disc' in out_og_name and 'discretization_0.2' in out_og_name:
         out_name = 'Discretized Clock - 0.2'
-    elif 'delaydisc' in out_og_name and 'discretization_0.5' in out_og_name:
+    elif 'disc' in out_og_name and 'discretization_0.5' in out_og_name:
         out_name = 'Discretized Clock - 0.5'
-    elif 'delaydisc' in out_og_name and 'discretization_0' in out_og_name:
+    elif 'disc' in out_og_name and 'discretization_0' in out_og_name:
         out_name = 'Reward Machine'
     else:
         out_name = 'Unknown'
