@@ -1,5 +1,3 @@
-#from reward_functions import *
-#from reward_machine_utils import evaluate_dnf, value_iteration
 import time
 from reward_machines.reward_functions import RewardFunction, ConstantRewardFunction
 from reward_machines.reward_machine_utils import evaluate_dnf, value_iteration
@@ -442,35 +440,3 @@ class TimedRewardMachine:
         for clock in reset.split(","):
             clock = clock.strip()
             clock_values[clock] = 0
-
-
-# Example usage
-# t0 = time.time()
-# rm = TimedRewardMachine("example_trm2.txt", global_dtype=np.int32)
-# print("Clocks:", rm.clock_names)
-# print("States:", rm.states)
-# print("Max constant:", rm.max_constant)
-# #print("Initial state:", rm.u0)
-# print("Transitions:", rm.transitions)
-# print("Outgoing transitions:", rm.outgoing_transitions)
-# print("Reward state:", rm.reward_state)
-# print("Reward transition:", rm.reward_transition)
-# #print("Guard space:", rm.guard_space)
-# print(rm.invalid_transition_reward)
-# print("Time taken to load RM:", time.time() - t0)
-
-# Example usageu1 = rm.reset()
-# init_config = rm.reset()
-# X_config, rew1, done1 = rm.step(init_config, "a", 3.5, {})
-# XX_config, rew2, done2 = rm.step(X_config, "b", 2.0, {})
-# print(f"Step: config1={init_config}, config2={X_config}, reward={rew1}, done={done1}")
-# print(f"Step: config2={X_config}, config3={XX_config}, reward={rew2}, done={done2}")
-
-
-# test_bounds = extract_bounds("x >= 3 and y < 5", max_constant=5, delta=0.001, global_dtype=np.int32)
-# print("Extracted bounds:", test_bounds)
-# new_test_bounds = substract_delay_from_bounds(test_bounds, 1, 5)
-# print("Bounds after subtracting delay:", new_test_bounds)
-#var_corner_points = find_corner_spaces(test_bounds, corner_range=0.1)
-#print("Variable corner points:", var_corner_points)
-

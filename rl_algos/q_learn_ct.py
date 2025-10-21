@@ -1,12 +1,8 @@
-"""
-Q-Learning based method
-"""
-
 import random, time
 import matplotlib.pyplot as plt
 import numpy as np
 import torch
-from torch.utils.tensorboard import SummaryWriter
+from avg_tb import SummaryWriter
 import os
 
 
@@ -122,16 +118,23 @@ def learn_delay_action(env,
           learning_starts,
           seed,
           tensorboard_log=None,  # Add this parameter
-          exp_name="q_learning_delay"):  # Add this parameter
+          exp_name="q_learning_delay",
+          aggregator=None):  # for averaging over seeds
     """Train a tabular Q-learning model with delay actions and log average rewards."""
     
     # Initialize TensorBoard writer
     random.seed(seed)
 
     writer = None
+    # if tensorboard_log is not None:
+    #     log_dir = os.path.join(tensorboard_log, exp_name+f"disc_clocks_{int(time.time())}"+f"use_crm_{env.add_crm}_crm_{env.crm_option}")
+    #     writer = SummaryWriter(log_dir=log_dir)
     if tensorboard_log is not None:
-        log_dir = os.path.join(tensorboard_log, exp_name+f"disc_clocks_{int(time.time())}"+f"use_crm_{env.add_crm}_crm_{env.crm_option}")
-        writer = SummaryWriter(log_dir=log_dir)
+        log_dir = os.path.join(
+            tensorboard_log,
+            exp_name + f"disc_clocks_{int(time.time())}" + f"use_crm_{env.add_crm}_crm_{env.crm_option}"
+        )
+        writer = SummaryWriter(log_dir=log_dir, aggregator=aggregator)
         print(f"TensorBoard logging to: {log_dir}")
 
     step = 0
@@ -173,6 +176,7 @@ def learn_delay_action(env,
     episode_reward = 0
     episode_time = 0
     episode_discounted_reward = 0
+    current_episode_time = 0
     num_episodes = 0
     print("-----------------Strarting Q-learning with delay actions-----------------")
     for global_step in range(total_timesteps):
@@ -244,6 +248,7 @@ def learn_delay_action(env,
             running_discounted_reward = 0.05 * episode_discounted_reward + (1 - 0.05) * running_discounted_reward
             current_episode_reward = episode_reward
             current_episode_reward_discounted = episode_discounted_reward
+            current_episode_time = episode_time 
 
             episode_reward = 0
             episode_time = 0
@@ -264,10 +269,10 @@ def learn_delay_action(env,
                 #print(f"Step {global_step}, Running Reward: {running_reward:.2f}")
                 writer.add_scalar("values/running_reward", running_reward, global_step)
                 writer.add_scalar("values/running_time", running_time, global_step)
-                writer.add_scalar("values/running_reward_unsmoothened", current_episode_reward, global_step)
-                writer.add_scalar("values/running_reward_discounted_unsmoothened", current_episode_reward_discounted, global_step)
-                writer.add_scalar("values/running_discounted_reward", 
-                running_discounted_reward, global_step)
+                writer.add_scalar("values/running_discounted_reward", running_discounted_reward, global_step)
+                writer.add_scalar("values/episode_reward", current_episode_reward, global_step)
+                writer.add_scalar("values/episode_discounted_reward", current_episode_reward_discounted, global_step)
+                writer.add_scalar("values/episode_time", current_episode_time, global_step)
                 writer.add_scalar("values/init_q", get_qmax(Q, init_state, actions), global_step)
 
                 print('------------------------------------------------')
@@ -288,138 +293,3 @@ def learn_delay_action(env,
         print(f"TensorBoard logs saved to: {log_dir}")
     
     return Q, episode_rewards, episode_times, episode_discounted_rewards
-
-
-
-# def learn(env,
-#           lr=0.5,
-#           total_episodes=1000,
-#           epsilon=0.5,          
-#           min_epsilon=0.1,
-#           epsilon_decay=0.9999,
-#           lr_decay=0.9999,
-#           print_freq=1,
-#           gamma=0.99,
-#           q_init=0.0,
-#           use_crm=False,
-#           use_rs=False,
-#           tensorboard_log=None,  # Add this parameter
-#           exp_name="q_learning"):   # Add this parameter
-#     """Train a tabular Q-learning model and log average rewards."""
-
-#     # Initialize TensorBoard writer
-#     writer = None
-#     if tensorboard_log is not None:
-#         log_dir = os.path.join(tensorboard_log, exp_name)
-#         writer = SummaryWriter(log_dir=log_dir)
-#         print(f"TensorBoard logging to: {log_dir}")
-
-#     step = 0
-#     num_episodes = 0
-
-#     Q = {}
-#     actions = env.action_space
-#     use_crm = env.add_crm
-#     use_rs = env.add_rs
-    
-#     # Logging variables
-#     episode_rewards = []
-#     episode_times = []
-#     episode_discounted_rewards = []
-
-#     # Running averages for smoother plots
-#     running_reward = 0
-#     running_time = 0
-#     running_discounted_reward = 0
-
-#     while num_episodes < total_episodes:
-        
-#         s = tuple(env.reset())
-#         init_Q(Q,s,actions,q_init)
-        
-#         # Episode stats
-#         episode_reward = 0
-#         episode_time = 0
-#         episode_discounted_reward = 0
-        
-#         while True:
-#             # epsilon-greedy step        
-#             a = random.choice(actions) if random.random() < epsilon else get_best_action(Q, s, actions)
-#             sn, r, t, done, info = env.step(a)
-#             sn = tuple(sn)
-
-#             # Updating the Q-values
-#             experiences = []
-#             if use_crm:
-#                 for _s, _a, _r, _t, _sn, _done in info["crm-experience"]:
-#                     experiences.append((tuple(_s), _a, _r, _t, tuple(_sn), _done))
-#             elif use_rs:
-#                 experiences = [(s, a, t, info["rs-reward"], sn, done)]
-#             else:
-#                 experiences = [(s, a, r, t, sn, done)]
-
-#             for _s, _a, _r, _t, _sn, _done in experiences:
-#                 init_Q(Q,_s,actions,q_init)
-#                 init_Q(Q,_sn,actions,q_init)
-#                 if _done:
-#                     _delta = _r - Q[_s][_a]
-#                 else:
-#                     _delta = _r + (gamma**_t) * get_qmax(Q, _sn, actions) - Q[_s][_a]
-#                 Q[_s][_a] += lr * _delta
-
-#             # Episode stats
-#             episode_reward += r
-#             episode_discounted_reward += (r * (gamma ** episode_time))
-#             episode_time += t
-#             step += 1
-
-#             # Log step-wise metrics to TensorBoard
-#             if writer is not None:
-#                 writer.add_scalar("train/step_reward", r, step)
-#                 writer.add_scalar("train/step_time", t, step)
-#                 writer.add_scalar("hyperparams/epsilon", epsilon, step)
-#                 writer.add_scalar("hyperparams/learning_rate", lr, step)
-
-#             if done:
-#                 num_episodes += 1
-#                 break
-            
-#             # Setting up next episode
-#             s = sn
-#             epsilon = max(min_epsilon, epsilon * epsilon_decay)
-#             lr *= lr_decay
-
-#         # Episode-wise logging
-#         if num_episodes % print_freq == 0:    
-#             episode_rewards.append(episode_reward)
-#             episode_times.append(episode_time)
-#             episode_discounted_rewards.append(episode_discounted_reward)
-            
-#             # Update running averages
-#             running_reward = 0.05 * episode_reward + (1 - 0.05) * running_reward
-#             running_time = 0.05 * episode_time + (1 - 0.05) * running_time
-#             running_discounted_reward = 0.05 * episode_discounted_reward + (1 - 0.05) * running_discounted_reward
-
-#             # Log to TensorBoard
-#             if writer is not None:
-#                 writer.add_scalar("train/episode_reward", episode_reward, num_episodes)
-#                 writer.add_scalar("train/episode_time", episode_time, num_episodes)
-#                 writer.add_scalar("train/episode_discounted_reward", episode_discounted_reward, num_episodes)
-#                 writer.add_scalar("train/running_reward", running_reward, num_episodes)
-#                 writer.add_scalar("train/running_time", running_time, num_episodes)
-#                 writer.add_scalar("train/running_discounted_reward", running_discounted_reward, num_episodes)
-#                 writer.add_scalar("train/q_table_size", len(Q), num_episodes)
-                
-#                 # Log exploration metrics
-#                 writer.add_scalar("hyperparams/epsilon", epsilon, num_episodes)
-#                 writer.add_scalar("hyperparams/learning_rate", lr, num_episodes)
-
-#             print(f"Episode {num_episodes}: Reward={episode_reward:.2f}, Time={episode_time}, Discounted={episode_discounted_reward:.2f}")
-
-#     # Close TensorBoard writer
-#     if writer is not None:
-#         writer.close()
-#         print(f"TensorBoard logs saved to: {log_dir}")
-    
-#     optimal_policy = get_policy(Q, actions)
-#     return Q, episode_rewards, episode_times, episode_discounted_rewards, optimal_policy

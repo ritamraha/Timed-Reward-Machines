@@ -1,16 +1,3 @@
-"""
-These are simple wrappers that will include RMs to any given environment.
-It also keeps track of the RM state as the agent interacts with the envirionment.
-
-However, each environment must implement the following function:
-    - *get_events(...)*: Returns the propositions that currently hold on the environment.
-
-Notes:
-    - The episode ends if the RM reaches a terminal state or the environment reaches a terminal state.
-    - The agent only gets the reward given by the RM.
-    - Rewards coming from the environment are ignored.
-"""
-
 import gymnasium as gym
 from gymnasium import spaces
 import numpy as np
@@ -18,7 +5,6 @@ import time
 from itertools import product
 import random
 from reward_machines.timed_reward_machine_corner_abstraction import CornerAbstractionTimedRewardMachine, create_region_space, create_sub_space, find_corner_spaces, extract_bounds
-from env.grid_env_ct import GridWorldEnvCT
 from reward_machines.reward_machine_utils import evaluate_dnf
 
 
@@ -269,7 +255,8 @@ class CornerAbstractionTimedRewardMachineEnvGym(gym.Wrapper):
 
         # the total reward is computed as the sum of cost of delaying in a state and the reward of the transition
         state_rm_rew, transition_rm_rew = rm_rew_pair
-        rm_rew = ((self.gamma**delay - 1)*(1/np.log(self.gamma))*state_rm_rew) + transition_rm_rew
+        rm_rew = (((self.gamma**delay - 1)/(self.gamma-1))*state_rm_rew) + transition_rm_rew
+        # rm_rew = ((self.gamma**delay - 1)*(1/np.log(self.gamma))*state_rm_rew) + transition_rm_rew
         terminated = rm_done or terminated
         truncated = truncated or self.steps >= self.max_steps
         #print('RM done:', rm_done, 'Env done:', terminated)
@@ -378,7 +365,8 @@ class CornerAbstractionTimedRewardMachineWrapperGym(gym.Wrapper):
         #rm_rew = sum([(self.gamma**t)*state_rm_rew for t in range(delay)]) + (self.gamma**(delay))*transition_rm_rew
         
         
-        rm_rew = ((self.gamma**delay - 1)*(1/np.log(self.gamma))*state_rm_rew) + transition_rm_rew
+        # rm_rew = ((self.gamma**delay - 1)*(1/np.log(self.gamma))*state_rm_rew) + transition_rm_rew
+        rm_rew = (((self.gamma**delay - 1)/(self.gamma-1))*state_rm_rew) + transition_rm_rew
 
         # bound the config of clocks to the maximum delay
         # for clock_name in next_config[1]:
@@ -706,20 +694,3 @@ class CornerAbstractionTimedRewardMachineWrapperGym(gym.Wrapper):
 
         deduped.sort(key=lambda x: x[3], reverse=True)
         return deduped[: self.crm_nums]
-        # print('#################')
-        # for exp in experiences:
-        #     print('Observation:', exp[0], self.env.index_to_region[exp[0][2]], 'Action:', self.env.index_to_action[exp[2]], 'Reward:', exp[3], 'Next observation:', exp[1], 'Done:', exp[4])
-
-
-        # print(f"CRM experiences returned: {len(experiences)}")
-        # return experiences
-    
-# t0 = time.time()
-# mdp_env = GridWorldEnvCT()
-# trm_env = CornerAbstractionTimedRewardMachineEnvGym(mdp_env, rm_files=["example_trm2.txt"], gamma=0.99) 
-# print(f"Time to create the environment: {time.time()-t0}")
-# action = np.array([0, 0, 1])  # delay, successor, env_action
-# first_s = trm_env.reset()
-# print(first_s)
-# second_s, r, done, truncated, info = trm_env.step(action)
-# print('Coord', second_s[:2], 'State', second_s[2], trm_env.index_to_region[second_s[3]], 'Corner', second_s[4:], 'Reward', r)

@@ -1,5 +1,3 @@
-#from reward_functions import *
-#from reward_machine_utils import evaluate_dnf, value_iteration
 import time
 from reward_machines.reward_functions import RewardFunction, ConstantRewardFunction
 from reward_machines.reward_machine_utils import evaluate_dnf, value_iteration
@@ -794,34 +792,3 @@ class CornerAbstractionTimedRewardMachine:
     
     def __len__(self):
         return len(self.U)
-
-
-
-
-# t = CornerAbstractionTimedRewardMachine("example_trm2.txt", global_dtype=np.int32)
-# starting_config = t.reset()
-# print("Initial config:", starting_config)
-# next_config, rew, done = t.step(starting_config, true_props=('a',), time_el=2, succ=2, s_info={})
-# print("Next config:", next_config, "Reward:", rew, "Done:", done)
-# next_config, rew, done = t.step(next_config, true_props=(), time_el=3, succ=1, s_info={})
-# print("Next config:", next_config, "Reward:", rew, "Done:", done)
-# next_config, rew, done = t.step(next_config, true_props=('b',), time_el=2, succ=2, s_info={})
-# print("Next config:", next_config, "Reward:", rew, "Done:", done)
-
-# print(extract_bounds("x==2", max_constant=10, clock_names=['x','y'], global_dtype=np.int32))
-# Current region: Region(I={'x': 1, 'y': 3}, Z=frozenset(), L=[frozenset({'y'}), frozenset({'x'})], M=16)
-# Current corner: {'x': 2, 'y': 4}
-# Shift: -2
-# New region: Region(I={'x': 0, 'y': 1}, Z=frozenset(), L=[frozenset({'y'}), frozenset({'x'})], M=16)
-# New corner: {'x': 0, 'y': 2}
-
-# r = Region(integral={'x': 1, 'y': 3},
-#            zero_set=frozenset(),
-#            ordering=[frozenset({'y'}), frozenset({'x'})],
-#            max_constant=16)
-
-# print("Original:", r)
-
-# # shift by -2
-# r_shifted = r.shift_region_dict({'x': -1, 'y': -2})
-# print("Shifted by -2:", r_shifted)

@@ -1,16 +1,3 @@
-"""
-These are simple wrappers that will include RMs to any given environment.
-It also keeps track of the RM state as the agent interacts with the envirionment.
-
-However, each environment must implement the following function:
-    - *get_events(...)*: Returns the propositions that currently hold on the environment.
-
-Notes:
-    - The episode ends if the RM reaches a terminal state or the environment reaches a terminal state.
-    - The agent only gets the reward given by the RM.
-    - Rewards coming from the environment are ignored.
-"""
-
 import gymnasium as gym
 from gymnasium import spaces
 import numpy as np
@@ -226,9 +213,9 @@ class TimedRewardMachineEnvGym(gym.Wrapper):
         # else:
         #     rm_rew = ((self.gamma**delay - 1)*(1/np.log(self.gamma))*state_rm_rew) + transition_rm_rew
         
-        rm_rew = (((self.gamma**delay - 1)/np.log(self.gamma))*state_rm_rew) + transition_rm_rew
+        # rm_rew = (((self.gamma**delay - 1)/np.log(self.gamma))*state_rm_rew) + transition_rm_rew
 
-        #rm_rew = (((self.gamma**delay - 1)/(self.gamma-1))*state_rm_rew) + transition_rm_rew
+        rm_rew = (((self.gamma**delay - 1)/(self.gamma-1))*state_rm_rew) + transition_rm_rew
         #print('Reward inside TRM env:', rm_rew)
         # Setting the next observations
         self.obs = next_obs
@@ -342,9 +329,9 @@ class TimedRewardMachineWrapperGym(gym.Wrapper):
         #     rm_rew = sum([(self.gamma**t)*state_rm_rew for t in range(delay)]) + transition_rm_rew
         # else:
         # rm_rew = ((self.gamma**delay - 1)*(1/np.log(self.gamma))*state_rm_rew) + transition_rm_rew
-        rm_rew = (((self.gamma**delay - 1)/(np.log(self.gamma)))*state_rm_rew) + transition_rm_rew
         
-        #rm_rew = (((self.gamma**delay - 1)/(self.gamma-1))*state_rm_rew) + transition_rm_rew
+        # rm_rew = (((self.gamma**delay - 1)/(np.log(self.gamma)))*state_rm_rew) + transition_rm_rew
+        rm_rew = (((self.gamma**delay - 1)/(self.gamma-1))*state_rm_rew) + transition_rm_rew
 
         # bound the config of clocks to the maximum delay
         for clock in self.clock_names:
@@ -583,43 +570,6 @@ class TimedRewardMachineWrapperGym(gym.Wrapper):
             return []
 
 
-                # crm_set = [clock_shift_dict(clock_values, shift, self.env.max_constant_dict) for shift in shift_dict_list]
-                # #print(crm_set)
-
-                # for crm_clock_values in crm_set:
-                #     assert min(crm_clock_values.values()) >= 0
-                
-                    # min_current_clock_value = min(crm_clock_values.values())
-                    # if min_current_clock_value >= self.env.max_constant:
-                    #     all_possible_delays = []   
-                    # else:
-                    #     if (rm_state, true_props) in self.env.current_rm.known_transitions_dnf:
-                    #         dnf_formulas = self.env.current_rm.known_transitions_dnf[(rm_state, true_props)]
-                    #     else:
-                    #         for dnf_formula in self.env.current_rm.outgoing_transitions[rm_state]:
-                    #             if not evaluate_dnf(dnf_formula, true_props):
-                    #                 continue
-                    #             self.env.current_rm.known_transitions_dnf.setdefault((rm_state, true_props),[]).append(dnf_formula)
-                    #         dnf_formulas = self.env.current_rm.known_transitions_dnf[(rm_state, true_props)]
-
-                    #     state_guards = [theta[2] for dnf_formula in dnf_formulas for theta in self.env.current_rm.outgoing_transitions[rm_state][dnf_formula]]
-
-                    #     curr_state_guard = random.choice(state_guards)
-
-                    #     curr_integral = crm_clock_values
-                    #     guard_bounds = extract_bounds(curr_state_guard, max_constant=self.env.max_constant, global_dtype=np.float32, delta=0.0, clock_names=self.clock_names)
-
-                    #     delay_bounds = {clock: np.clip(np.array(guard_bounds[clock])-curr_integral[clock]-1,0, self.env.max_delay) for clock in self.clock_names}
-                    #     # random sample one space from the list of possible clock spaces
-                    #     lower_delay = max([delay_bounds[clock][0] for clock in delay_bounds])
-                    #     upper_delay = min([delay_bounds[clock][1] for clock in delay_bounds])
-                        
-                    #     all_possible_delays = range(int(lower_delay), int(upper_delay)+1)
-                    
-                    # #print('All possible delays:', list(all_possible_delays))
-                    # all_possible_new_actions = [np.array([d,env_action]) for d in all_possible_delays]
-                    # all_possible_crms[rm_state] = [(crm_clock_values, all_possible_new_actions)]
-
         rm_id = self.env.current_rm_id
         rm = self.env.current_rm
         #print(all_possible_crms)
@@ -632,10 +582,9 @@ class TimedRewardMachineWrapperGym(gym.Wrapper):
                     exp, next_u = self._get_rm_experience(
                         rm_id, rm, config2, obs, new_action, next_obs, env_done, true_props, info
                     )
-                    # if (next_u != state) or (exp[3] >= 0):
                     experiences.append(exp)
         
-        # de-duplicate and cap
+        
         seen = set()
         deduped = []
         for e in experiences:
@@ -647,34 +596,4 @@ class TimedRewardMachineWrapperGym(gym.Wrapper):
             deduped.append(e)
 
         deduped.sort(key=lambda x: x[3], reverse=True)
-        # print(f"CRM experiences generated: {self.crm_nums}, deduped to: {len(deduped)}")
-        # for item in deduped[: self.crm_nums]:
-        #     print("Deduplicated experience:", item)
         return deduped[: self.crm_nums]
-
-        # for rm_id, rm in enumerate(self.env.reward_machines):
-        #     for state in all_possible_crms:
-        #         if state == rm.terminal_state:
-        #             continue
-        #         for clock_values, action_list in all_possible_crms[state]:
-        #             for new_action in action_list:
-        #                 config = (state, clock_values.copy())
-        #                 #print('Config:', config, 'Action:', new_action)
-        #                 #print('CRM config:', config, 'Action:', new_action)
-        #                 exp, next_u = self._get_rm_experience(rm_id, rm, config, obs, new_action, next_obs, env_done, true_props, info)
-        #                 experiences.append(exp)
-
-
-        # Add only the best N experiences
-        # Sort by the highest reward and then by not done
-        #experiences.sort(key=lambda x: x[3], reverse=True)
-
-        #print('CRM nums:', self.crm_nums)
-        #experiences = experiences[:self.crm_nums]
-        #print(f"CRM experiences generated: {len(experiences)}")
-        # for exp in experiences:
-        #     print('Obs', exp[0], 'Action:', self.env.index_to_action[exp[2]], 'Reward:', exp[3], 'Next Obs:', exp[1], 'Done:', exp[4])
-        #         # print(exp)
-        # print(f"CRM experiences generated: {len(experiences)}")
-        #self.valid_states = reachable_states
-        #return experiences
