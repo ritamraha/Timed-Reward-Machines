@@ -205,7 +205,7 @@ def optimal_run(env, Q, actions, gamma, video_path="trm_taxi_policy.mp4"):
 
 def discrete_q_learning():
 
-    total_runs = 1 # Number of runs to average over
+    #total_runs = 1 # Number of runs to average over
     total_timesteps = 300000 # Total episodes for each run
     q_init = 10  # Initial Q-value for all state-action pairs
     epsilon = 0.9

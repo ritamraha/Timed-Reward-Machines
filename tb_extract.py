@@ -20,7 +20,7 @@ from collections import defaultdict
 
 
 # smoothing: set to 0 to disable, otherwise odd integer window size for rolling mean
-smoothing_window = 40
+smoothing_window = 10
 reward_range = (-1000, 2000)
 time_range = (0, 150)
 # ====================
@@ -28,15 +28,18 @@ time_range = (0, 150)
 
 # ====== CONFIG ======
 in_dir = Path("Logs/extracts_csv")   # << set this to your folder with CSVs
-out_dir = Path("Logs/extracts_plot")
-out_dir.mkdir(exist_ok=True)
+# out_dir = Path("Logs/extracts_plot")
+# Do NOT auto-create or wipe 'extracts_csv' or 'extracts_plot' to avoid accidental data loss.
+# The script will use existing folders/files. If you want automatic creation, uncomment:
+# in_dir.mkdir(parents=True, exist_ok=True)
+# out_dir.mkdir(parents=True, exist_ok=True)
 # clear in_dir and out_dir and recreate
-if in_dir.exists():
-    shutil.rmtree(in_dir)
-in_dir.mkdir(parents=True, exist_ok=True)
-if out_dir.exists():
-    shutil.rmtree(out_dir)
-out_dir.mkdir(exist_ok=True)
+# if in_dir.exists():
+#     shutil.rmtree(in_dir)
+# in_dir.mkdir(parents=True, exist_ok=True)
+# if out_dir.exists():
+#     shutil.rmtree(out_dir)
+# out_dir.mkdir(exist_ok=True)
 
 EVENT_GLOB = "events.out.tfevents.*"
 
@@ -183,9 +186,18 @@ out_dir.mkdir(exist_ok=True)
 
 
 
-for tag in sorted(all_tags):
+# Only generate plots for these specific tags
+DESIRED_TAGS = {
+    "episode_discounted_reward",
+    "episode_time",
+}
+tags_to_plot = sorted(t for t in all_tags if t in DESIRED_TAGS)
+if not tags_to_plot:
+    raise SystemExit(f"No desired tags found in data. Available tags: {sorted(all_tags)}")
+for tag in tags_to_plot:
     # Make plot width smaller (e.g., 5 inches wide, 4 inches tall)
-    plt.figure(figsize=(4.5, 5))
+    # wider, more readable plots
+    plt.figure(figsize=(8, 6), dpi=150)
     any_curve = False
     for display_name, dfs in grouped_files.items():
         # collect all runs for this display_name and tag
@@ -258,6 +270,9 @@ for tag in sorted(all_tags):
 
     plt.grid(True)
 
+    # show legend on the main plot (put it in a good spot automatically)
+    plt.legend(loc='best', frameon=False, fontsize=10)
+
     # format ticks to use 'K' for thousands (e.g., 2000 -> 2K)
     def k_formatter(x, pos):
         try:
@@ -309,41 +324,4 @@ for tag in sorted(all_tags):
     plt.savefig(out_path, format="svg", bbox_inches="tight")
     plt.close()
     
-    # --- Save legend separately as SVG ---
-    handles, labels = ax.get_legend_handles_labels()
-    if handles and labels:
-        fig_legend = plt.figure(figsize=(6, 1))
-        fig_legend.legend(handles, labels, loc='center', ncol=4, frameon=False)
-        fig_legend.tight_layout()
-        legend_path = out_dir / f"{tag}_legend.svg"
-        fig_legend.savefig(legend_path, format="svg", bbox_inches="tight")
-        plt.close(fig_legend)
-        print(f"Saved legend: {legend_path}")
-    
-    # svg to pdf using inkscape if available
-    try:
-        import subprocess
-        pdf_path = out_path.with_suffix(".pdf")
-        subprocess.run(["inkscape", str(out_path), "--export-type=pdf", "--export-filename", str(pdf_path)],
-                       check=True)
-        print(f"Saved {pdf_path}")
-    except Exception:
-        print("Failed to convert SVG to PDF.")
-    print(f"Saved {out_path}")
-
-# Convert all legend SVGs to PDF using Inkscape
-for legend_svg in out_dir.glob("*_legend.svg"):
-    pdf_path = legend_svg.with_suffix(".pdf")
-    try:
-        import subprocess
-        subprocess.run([
-            "inkscape", str(legend_svg),
-            "--export-type=pdf",
-            "--export-filename", str(pdf_path)
-        ], check=True)
-        print(f"Converted legend to PDF: {pdf_path}")
-    except Exception as e:
-        print(f"Failed to convert {legend_svg} to PDF: {e}")
-
-
 print(f"Done. Plots in: {out_dir.resolve()}")
