@@ -103,7 +103,7 @@ for run_dir in run_dirs:
         out_name = 'Unknown'
 
     if 'crm_True' in out_og_name:
-        out_name += ' + CRM'
+        out_name += ' + CI'
 
     # include the sanitized relative path (out_og_name) in the filename to avoid
     # overwriting multiple runs that map to the same human-friendly label.
